@@ -1,8 +1,10 @@
 package io.flutter.plugins.videoplayer;
 
 import android.content.Context;
+import android.media.session.MediaSession;
 import android.net.Uri;
 import android.os.Build;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.view.Surface;
 
 import androidx.annotation.Nullable;
@@ -13,6 +15,7 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.audio.AudioAttributes;
+import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -147,7 +150,7 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       MediaSource mediaSource = buildMediaSource(uri, dataSourceFactory, context);
       exoPlayer.prepare(mediaSource);
 
-      setupVideoPlayer(eventChannel, textureEntry, result);
+      setupVideoPlayer(eventChannel, textureEntry, result, context);
     }
 
     private MediaSource buildMediaSource(
@@ -180,7 +183,8 @@ public class VideoPlayerPlugin implements MethodCallHandler {
     private void setupVideoPlayer(
             EventChannel eventChannel,
             TextureRegistry.SurfaceTextureEntry textureEntry,
-            Result result) {
+            Result result,
+            Context context) {
 
       eventChannel.setStreamHandler(
               new EventChannel.StreamHandler() {
@@ -230,6 +234,11 @@ public class VideoPlayerPlugin implements MethodCallHandler {
                   eventSink.error("VideoError", "Video player had error " + error, null);
                 }
               });
+
+      MediaSessionCompat mediaSession = new MediaSessionCompat(context, "packageName");
+      MediaSessionConnector mediaSessionConnector = new MediaSessionConnector(mediaSession);
+      mediaSessionConnector.setPlayer(exoPlayer, null);
+      mediaSession.setActive(true);
 
       Map<String, Object> reply = new HashMap<>();
       reply.put("textureId", textureEntry.id());
