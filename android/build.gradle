@@ -52,10 +52,11 @@ android {
     }
 
     dependencies {
-        implementation 'com.google.android.exoplayer:exoplayer-core:2.9.6'
-        implementation 'com.google.android.exoplayer:exoplayer-hls:2.9.6'
-        implementation 'com.google.android.exoplayer:exoplayer-dash:2.9.6'
-        implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.9.6'
-        implementation 'com.google.android.exoplayer:extension-mediasession:2.9.6'
+        implementation 'com.google.android.exoplayer:exoplayer-core:2.12.0'
+        implementation 'com.google.android.exoplayer:exoplayer-hls:2.12.0'
+        implementation 'com.google.android.exoplayer:exoplayer-dash:2.12.0'
+        implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.12.0'
+        implementation 'com.google.android.exoplayer:extension-mediasession:2.12.0'
+        implementation("com.google.guava:guava:29.0-android")
     }
 }

@@ -257,6 +257,12 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case 'bufferingEnd':
           value = value.copyWith(isBuffering: false);
           break;
+        case 'paused':
+          value = value.copyWith(isPlaying: false);
+          break;
+        case 'played':
+          value = value.copyWith(isPlaying: true);
+          break;
       }
     }
 
@@ -331,7 +337,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       );
       _timer = Timer.periodic(
         const Duration(milliseconds: 500),
-            (Timer timer) async {
+        (Timer timer) async {
           if (_isDisposed) {
             return;
           }
@@ -567,11 +573,11 @@ class _VideoScrubberState extends State<_VideoScrubber> {
 /// that will also detect the gestures.
 class VideoProgressIndicator extends StatefulWidget {
   VideoProgressIndicator(
-      this.controller, {
-        VideoProgressColors colors,
-        this.allowScrubbing,
-        this.padding = const EdgeInsets.only(top: 5.0),
-      }) : colors = colors ?? VideoProgressColors();
+    this.controller, {
+    VideoProgressColors colors,
+    this.allowScrubbing,
+    this.padding = const EdgeInsets.only(top: 5.0),
+  }) : colors = colors ?? VideoProgressColors();
 
   final VideoPlayerController controller;
   final VideoProgressColors colors;
@@ -660,3 +666,4 @@ class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
     }
   }
 }
+

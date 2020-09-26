@@ -229,6 +229,19 @@ public class VideoPlayerPlugin implements MethodCallHandler {
                 }
 
                 @Override
+                public void onIsPlayingChanged(boolean isPlaying) {
+                  if (isPlaying) {
+                    Map<String, Object> event = new HashMap<>();
+                    event.put("event", "played");
+                    eventSink.success(event);
+                  } else {
+                    Map<String, Object> event = new HashMap<>();
+                    event.put("event", "paused");
+                    eventSink.success(event);
+                  }
+                }
+
+                @Override
                 public void onPlayerError(final ExoPlaybackException error) {
                   Player.EventListener.super.onPlayerError(error);
                   eventSink.error("VideoError", "Video player had error " + error, null);
@@ -237,7 +250,7 @@ public class VideoPlayerPlugin implements MethodCallHandler {
 
       MediaSessionCompat mediaSession = new MediaSessionCompat(context, "packageName");
       MediaSessionConnector mediaSessionConnector = new MediaSessionConnector(mediaSession);
-      mediaSessionConnector.setPlayer(exoPlayer, null);
+      mediaSessionConnector.setPlayer(exoPlayer);
       mediaSession.setActive(true);
 
       Map<String, Object> reply = new HashMap<>();
