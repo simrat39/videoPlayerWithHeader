@@ -1,7 +1,6 @@
 package io.flutter.plugins.videoplayer;
 
 import android.content.Context;
-import android.media.session.MediaSession;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -11,21 +10,19 @@ import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
@@ -92,7 +89,6 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       DefaultHttpDataSource dataSource =
               new DefaultHttpDataSource(
                       userAgent,
-                      /* contentTypePredicate= */ null,
                       connectTimeoutMillis,
                       readTimeoutMillis,
                       allowCrossProtocolRedirects,
@@ -128,8 +124,7 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       this.eventChannel = eventChannel;
       this.textureEntry = textureEntry;
 
-      TrackSelector trackSelector = new DefaultTrackSelector();
-      exoPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelector);
+      exoPlayer = new SimpleExoPlayer.Builder(context).setTrackSelector(new DefaultTrackSelector(context)).build();
 
       Uri uri = Uri.parse(dataSource);
 
@@ -148,7 +143,8 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       }
 
       MediaSource mediaSource = buildMediaSource(uri, dataSourceFactory, context);
-      exoPlayer.prepare(mediaSource);
+      exoPlayer.setMediaSource(mediaSource);
+      exoPlayer.prepare();
 
       setupVideoPlayer(eventChannel, textureEntry, result, context);
     }
@@ -161,18 +157,18 @@ public class VideoPlayerPlugin implements MethodCallHandler {
           return new SsMediaSource.Factory(
                   new DefaultSsChunkSource.Factory(mediaDataSourceFactory),
                   new DefaultDataSourceFactory(context, null, mediaDataSourceFactory))
-                  .createMediaSource(uri);
+                  .createMediaSource(MediaItem.fromUri(uri));
         case C.TYPE_DASH:
           return new DashMediaSource.Factory(
                   new DefaultDashChunkSource.Factory(mediaDataSourceFactory),
                   new DefaultDataSourceFactory(context, null, mediaDataSourceFactory))
-                  .createMediaSource(uri);
+                  .createMediaSource(MediaItem.fromUri(uri));
         case C.TYPE_HLS:
-          return new HlsMediaSource.Factory(mediaDataSourceFactory).createMediaSource(uri);
+          return new HlsMediaSource.Factory(mediaDataSourceFactory)
+                  .createMediaSource(MediaItem.fromUri(uri));
         case C.TYPE_OTHER:
-          return new ExtractorMediaSource.Factory(mediaDataSourceFactory)
-                  .setExtractorsFactory(new DefaultExtractorsFactory())
-                  .createMediaSource(uri);
+          return new ProgressiveMediaSource.Factory(mediaDataSourceFactory)
+                  .createMediaSource(MediaItem.fromUri(uri));
         default:
         {
           throw new IllegalStateException("Unsupported type: " + type);
@@ -206,8 +202,8 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       exoPlayer.addListener(
               new Player.EventListener() {
                 @Override
-                public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
-                  Player.EventListener.super.onPlayerStateChanged(playWhenReady, playbackState);
+                public void onPlaybackStateChanged(final int playbackState) {
+                  Player.EventListener.super.onPlaybackStateChanged(playbackState);
                   if (playbackState == Player.STATE_BUFFERING) {
                     Map<String, Object> event = new HashMap<>();
                     event.put("event", "bufferingUpdate");
