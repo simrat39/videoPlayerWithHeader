@@ -276,7 +276,7 @@ public class VideoPlayerPlugin implements MethodCallHandler, FlutterPlugin {
             } else {
                 dataSourceFactory =
                         new VideoPlayerHttpDataSourceFactory(
-                                "ExoPlayer",
+                                "Mozilla/5.0 (X11; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0",
                                 null,
                                 DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS,
                                 DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
