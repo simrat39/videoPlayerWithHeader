@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.util.Log;
 import android.view.Surface;
 
 import androidx.annotation.Nullable;
@@ -11,6 +12,7 @@ import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.audio.AudioAttributes;
@@ -182,6 +184,14 @@ public class VideoPlayerPlugin implements MethodCallHandler, FlutterPlugin {
                 int location = ((Number) Objects.requireNonNull(call.argument("location"))).intValue();
                 player.seekTo(location);
                 result.success(null);
+                break;
+            case "setPlaybackSpeed":
+                double speed = call.argument("speed");
+                player.setPlaybackSpeed(speed);
+                result.success(null);
+                break;
+            case "getPlaybackSpeed":
+                result.success(player.getPlaybackSpeed());
                 break;
             case "position":
                 result.success(player.getPosition());
@@ -416,6 +426,14 @@ public class VideoPlayerPlugin implements MethodCallHandler, FlutterPlugin {
 
         void setLooping(boolean value) {
             exoPlayer.setRepeatMode(value ? REPEAT_MODE_ALL : REPEAT_MODE_OFF);
+        }
+
+        void setPlaybackSpeed(double speed) {
+            exoPlayer.setPlaybackParameters(new PlaybackParameters((float) speed));
+        }
+
+        float getPlaybackSpeed() {
+            return exoPlayer.getPlaybackParameters().speed;
         }
 
         void setVolume(double value) {
